@@ -134,8 +134,7 @@ def odoo_to_pandas_list(orm_query=None, columns=list()):
     for row in orm_query:
         row_data = {}
         for column in columns:
-            row_data[column] = False if not row.mapped(column) else row.mapped(column)[0]
-            row_data[column] = '' if not row_data[column] else row_data[column]
+            row_data[column] = '' if len(row.mapped(column)) == 0 else row.mapped(column)[0]
         data.append(row_data)
     return data
 # ----------------------------------------------------------------------------------------------------

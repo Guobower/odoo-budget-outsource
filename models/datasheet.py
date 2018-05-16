@@ -52,8 +52,8 @@ class DataSheet(models.Model):
             ('datasheet_id', '=', self.id),
         ])
 
-        new_attendance_ids = set(mobilize_ids) - set(attendance_ids.mapped('id'))
-
+        new_attendance_ids = set(mobilize_ids) - set(attendance_ids.mapped('mobilize_id.id'))
+        # TODO FIX CREATION DUPLICATES
         # period_start, period_end, required_hours, mobilize_id, ,datasheet_id
         for i in new_attendance_ids:
             self.env['budget.outsource.mobilize.attendance'].create({
@@ -74,7 +74,7 @@ class DataSheet(models.Model):
         # DICTIONARY OF COLUMNS/FIELDS
         # (field_name, renamed_column)
         mobilize_columns = {
-            'position_id.division_id.name': 'division_name',
+            'position_id.division_id.alias': 'division_alias',
             'position_id.section_id.name': 'section_name',
             'manager': 'manager',
             'director': 'director',
@@ -96,7 +96,7 @@ class DataSheet(models.Model):
         df_mobilize.columns = [mobilize_columns[i] for i in df_mobilize.columns]
 
         df_mobilize.sort_values(
-            by=['division_name', 'manager', 'director', 'position_name'],
+            by=['division_alias', 'manager', 'director', 'position_name'],
             ascending=[True, True, True, True],
             inplace=True)
 
@@ -128,16 +128,16 @@ class DataSheet(models.Model):
         ws.insert_rows(row, len(rs_mobilize) - 1)
         for record in rs_mobilize:
             ws.cell(row=row, column=column).value = sr
-            ws.cell(row=row, column=column + 1).value = record.get('division_name', '')
+            ws.cell(row=row, column=column + 1).value = record.get('division_alias', '')
             ws.cell(row=row, column=column + 2).value = record.get('section_name', '')
             ws.cell(row=row, column=column + 3).value = record.get('manager', '')
             ws.cell(row=row, column=column + 4).value = record.get('director', '')
             ws.cell(row=row, column=column + 5).value = record.get('resID', '')
             ws.cell(row=row, column=column + 6).value = record.get('positionID', '')
             ws.cell(row=row, column=column + 7).value = record.get('po_num', '')
-            ws.cell(row=row, column=column + 8).value = record.get('unit_rate', '')
-            ws.cell(row=row, column=column + 9).value = record.get('rate_variance_percent', '')
-            ws.cell(row=row, column=column + 10).value = record.get('rate', '')
+            ws.cell(row=row, column=column + 8).value = record.get('unit_rate', 0.0)
+            ws.cell(row=row, column=column + 9).value = record.get('rate_variance_percent', 0.0)
+            ws.cell(row=row, column=column + 10).value = record.get('rate', 0.0)
             ws.cell(row=row, column=column + 11).value = record.get('agency_ref_num', '')
             ws.cell(row=row, column=column + 12).value = record.get('resource_name', '').title()
             ws.cell(row=row, column=column + 13).value = record.get('position_name', '')

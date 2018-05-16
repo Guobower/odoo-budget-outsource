@@ -70,12 +70,10 @@ class Mobilize(models.Model):
     rendered_hours = fields.Float(compute='_compute_rendered_hours')
 
     rate = fields.Monetary(currency_field='currency_id',
-                           default=0.00,
                            compute='_compute_rate',
                            store=True)
 
-    rate_variance_percent = fields.Float(default=0.00,
-                                         digits=(12, 4),
+    rate_variance_percent = fields.Float(digits=(12, 4),
                                          compute='_compute_rate_variance_percent',
                                          store=True)
 

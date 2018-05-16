@@ -83,7 +83,6 @@
                     <field name="ramadan_start"/>
                     <field name="ramadan_end"/>
                     <field name="po_id"/>
-                    <field name="state"/>
                 </tree>
             </field>
         </record>

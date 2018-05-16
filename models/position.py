@@ -30,18 +30,17 @@ class Position(models.Model):
     # COMPUTE FIELDS
     # ----------------------------------------------------------
     unit_rate = fields.Monetary(currency_field='currency_id',
-                                default=0.00,
                                 compute='_compute_unit_rate',
                                 store=True)
 
     @api.one
-    @api.depends('name', 'level', 'po_id')
+    @api.depends('name', 'level', 'po_id', 'po_id.contractor_id')
     def _compute_unit_rate(self):
-        if self.name and self.level and self.po_id.mapped('contractor_id'):
+        if self.name and self.level and self.mapped('po_id.contractor_id'):
             unit_rate_id = self.env['budget.outsource.unit.rate'].search([
                 ('position_name', '=', self.name),
                 ('position_level', '=', self.level),
-                ('contractor_id', '=', self.po_id.contractor_id.id)
+                ('contractor_id', '=', self.mapped('po_id.contractor_id').id)
             ])
             self.unit_rate = unit_rate_id.amount
 

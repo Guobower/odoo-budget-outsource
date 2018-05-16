@@ -449,17 +449,22 @@ def migrate_purchase_order(env=None, filename='TechPO.csv'):
         for row in reader:
             po_id = po_model.search([('no', '=', row["PONum"])])
             if row['Contractor'] == 'REACH':
-                contractor_name = 'REACH EMPLOYMENT'
+                contractor_name = 'REACH EMPLOYMENT SERVICES'
             elif row['Contractor'] == 'SHAHID':
-                contractor_name = 'SHAHID TECH'
+                contractor_name = 'SHAHID TECH CONT CO LLC'
             elif row['Contractor'] == 'STAR':
-                contractor_name = 'STAR SERVICES'
+                contractor_name = 'STAR SERVICES L.L.C'
             else:
                 contractor_name = row['Contractor']
 
-            contractor_id = env['budget.contractor.contractor'].search([('name', 'like', contractor_name)])
+            contractor_id = env['budget.contractor.contractor'].search([('name', '=', contractor_name)])
 
             if len(po_id) != 0:
+                data = {
+                    'contractor_id': contractor_id.id,
+                }
+                po_id.write(data)
+
                 dumper.exist()
                 continue
             else:
