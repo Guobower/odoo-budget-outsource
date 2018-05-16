@@ -20,6 +20,9 @@ class Mobilize(models.Model):
     state = fields.Selection(string='Status', selection=STATES, default='not mobilized')
     revise_rate = fields.Monetary(string='Revised Rate', currency_field='currency_id', default=0.00)
 
+    manager = fields.Char(string='Manager')
+    director = fields.Char(string='Director')
+
     approval_ref_num = fields.Char(string='Approval Reference Number')
     approval_reason = fields.Text(string='Approval Reason')
 
@@ -57,17 +60,50 @@ class Mobilize(models.Model):
     resource_id = fields.Many2one('budget.outsource.resource', string='ResID')
     position_id = fields.Many2one('budget.outsource.position', string='PODetID')
 
+    attendance_ids = fields.One2many('budget.outsource.mobilize.attendance',
+                                     'mobilize_id',
+                                     string='Attendances')
+
     # COMPUTE FIELDS
     # ----------------------------------------------------------
+    required_hours = fields.Float(compute='_compute_required_hours')
+    rendered_hours = fields.Float(compute='_compute_rendered_hours')
+
     rate = fields.Monetary(currency_field='currency_id',
                            default=0.00,
                            compute='_compute_rate',
                            store=True)
 
-    rate_diff_percent = fields.Float(default=0.00,
-                                     digits=(12, 4),
-                                     compute='_compute_rate_diff_percent',
-                                     store=True)
+    rate_variance_percent = fields.Float(default=0.00,
+                                         digits=(12, 4),
+                                         compute='_compute_rate_variance_percent',
+                                         store=True)
+
+    @api.one
+    def _compute_required_hours(self):
+        period_start = self.env.context.get('period_start')
+        period_end = self.env.context.get('period_end')
+        if period_start or period_end:
+            attendance_id = self.attendance_ids.filtered(lambda r: r.period_start == period_start and
+                                                                   r.period_end == period_end)
+            if attendance_id:
+                self.required_hours = attendance_id.required_hours
+                return
+
+        self.required_hours = 0.0
+
+    @api.one
+    def _compute_rendered_hours(self):
+        period_start = self.env.context.get('period_start')
+        period_end = self.env.context.get('period_end')
+        if period_start or period_end:
+            attendance_id = self.attendance_ids.filtered(lambda r: r.period_start == period_start and
+                                                                   r.period_end == period_end)
+            if attendance_id:
+                self.rendered_hours = attendance_id.rendered_hours
+                return
+
+        self.rendered_hours = 0.0
 
     @api.one
     @api.depends('position_id', 'revise_rate')
@@ -76,11 +112,11 @@ class Mobilize(models.Model):
 
     @api.one
     @api.depends('position_id', 'rate')
-    def _compute_rate_diff_percent(self):
+    def _compute_rate_variance_percent(self):
         if self.position_id.unit_rate == 0 or self.rate == 0:
-            self.rate_diff_percent = 0
+            self.rate_variance_percent = 0
         else:
-            self.rate_diff_percent = ((self.rate - self.position_id.unit_rate) / self.position_id.unit_rate) * 100
+            self.rate_variance_percent = ((self.rate - self.position_id.unit_rate) / self.position_id.unit_rate) * 100
 
     @api.multi
     def toggle_state(self):

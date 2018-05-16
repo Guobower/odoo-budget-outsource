@@ -9,6 +9,6 @@ class Oear(models.Model):
     # BASIC FIELDS
     # ----------------------------------------------------------
     # TODO DEPRECATED
-    is_resource = fields.Boolean('Is Resource', default=False)
+    is_outsource = fields.Boolean('Is Outsource', default=False)
 
-    is_outsource = fields.Boolean('Is Resource', default=False)
+    is_outsource = fields.Boolean('Is Outsource', default=False)

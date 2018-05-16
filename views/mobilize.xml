@@ -20,7 +20,7 @@
                         <!--type="object"-->
                         <!--states="draft"/>-->
                         <!--<field name="state" widget="statusbar"-->
-                               <!--statusbar_visible="not mobilized,mobilized"/>-->
+                        <!--statusbar_visible="not mobilized,mobilized"/>-->
                     </header>
                     <sheet>
                         <group readonly="1" groups="base.group_no_one">
@@ -79,6 +79,16 @@
                                     </group>
                                 </group>
                             </page>
+                            <page string="Attendance">
+                                <field name="attendance_ids" readonly="1">
+                                    <tree>
+                                        <field name="period_start"/>
+                                        <field name="period_end"/>
+                                        <field name="required_hours"/>
+                                        <field name="rendered_hours"/>
+                                    </tree>
+                                </field>
+                            </page>
                         </notebook>
                     </sheet>
                     <div class="oe_chatter">
@@ -99,9 +109,8 @@
                 <tree>
                     <field name="division_id"/>
                     <field name="section_id"/>
-                    <!--TODO ADD THIS FIELDS-->
-                    <!--<field name="manager"/>-->
-                    <!--<field name="director"/>-->
+                    <field name="manager"/>
+                    <field name="director"/>
                     <field name="resource_id"/>
                     <field name="position_id"/>
                     <field name="po_id"/>
@@ -115,6 +124,35 @@
                     <field name="date_of_join"/>
                     <field name="date_of_last_working_day"/>
                     <field name="has_tool_or_uniform"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_tree_mobilize_with_attendance">
+            <field name="name">Mobilize</field>
+            <field name="model">budget.outsource.mobilize</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="division_id"/>
+                    <field name="section_id"/>
+                    <field name="manager"/>
+                    <field name="director"/>
+                    <field name="resource_id"/>
+                    <field name="position_id"/>
+                    <field name="po_id"/>
+                    <field name="rate"/>
+                    <!--TODO ADD THIS FIELDS-->
+                    <!--<field name="additional_rate_%"/>-->
+                    <field name="agency_ref_num"/>
+                    <field name="resource_name"/>
+                    <field name="position_name"/>
+                    <field name="level"/>
+                    <field name="date_of_join"/>
+                    <field name="date_of_last_working_day"/>
+                    <field name="has_tool_or_uniform"/>
+                    <field name="required_hours"/>
+                    <field name="rendered_hours"/>
                     <field name="state"/>
                 </tree>
             </field>

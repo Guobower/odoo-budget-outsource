@@ -490,12 +490,18 @@ def migrate_position(env=None, filename='TechPOLineDetail.csv'):
                 continue
 
             po_id = env['budget.purchase.order'].search([('no', 'like', row['PONum'])])
+            division_id = env['budget.enduser.division'].search([('alias', '=', row['Division'])])
+
+            if len(po_id) != 1 or not len(division_id) != 1:
+                continue
+
             data = {
                 'identifier': row['PODetID'],
                 'os_ref': row["POOSRef"],
                 'name': row["POPosition"],
                 'level': row["POLevel"],
-                'po_id': po_id.id,
+                'po_id': False if not po_id else po_id.id,
+                'division_id': False if not division_id else division_id.id,
                 'capex_percent': row["CPX%Age"],
                 'opex_percent': row["OPX%Age"],
                 'revenue_percent': row["REV%Age"],
@@ -573,16 +579,17 @@ def migrate_mobilize(env=None, filename='RPT01_ Monthly Accruals - Mobillized.cs
                 'position_id': position_id.id,
                 'resource_id': resource_id.id,
                 'revise_rate': float(searched),
+                'state': 'mobilized'
             }
             dumper.create(data)
     dumper.end()
 
 
 def start_migrate(env):
-    # migrate_unit_price(env)
-    # migrate_purchase_order(env)
-    # migrate_position(env)
-    # migrate_resource(env)
+    migrate_unit_price(env)
+    migrate_purchase_order(env)
+    migrate_position(env)
+    migrate_resource(env)
     migrate_mobilize(env)
 
 

@@ -12,9 +12,9 @@
             <field name="inherit_id" ref="budget_contractor.view_search_contractor"/>
             <field name="arch" type="xml">
                 <xpath expr="//search" position="inside">
-                    <filter name="is_resource"
+                    <filter name="is_outsource"
                             string="Outsource"
-                            domain="[('contract_ids.is_resource', '=', True)]"/>
+                            domain="[('contract_ids.is_outsource', '=', True)]"/>
                 </xpath>
             </field>
         </record>
@@ -28,7 +28,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="search_view_id" ref="view_search_contractor"/>
-            <field name="context">{'search_default_is_resource': 1}</field>
+            <field name="context">{'search_default_is_outsource': 1}</field>
 
         </record>
         <!--END ACTIONS-->

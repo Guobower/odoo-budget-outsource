@@ -14,6 +14,7 @@
                             target="new"
                             class="oe_stat_button"
                             icon="fa-users"
+                            attrs="{'invisible': [('is_outsource','!=',True)]}"
                             context="{'search_default_po_id': id}">
                         <field string="Positions" name="total_position" widget="statinfo"/>
                     </button>
@@ -21,7 +22,7 @@
                 </xpath>
 
                 <xpath expr="//field[@name='contractor_id']" position="before">
-                    <field name="is_resource"/>
+                    <field name="is_outsource"/>
                 </xpath>
             </field>
         </record>
@@ -35,9 +36,9 @@
             <field name="inherit_id" ref="budget_purchase_order.view_search_purchase_order"/>
             <field name="arch" type="xml">
                 <xpath expr="//search" position="inside">
-                    <filter name="is_resource"
+                    <filter name="is_outsource"
                             string="Outsource"
-                            domain="[('contractor_id.contract_ids.is_resource', '=', True)]"/>
+                            domain="[('contractor_id.contract_ids.is_outsource', '=', True)]"/>
                     <field name="contractor_id"/>
                 </xpath>
             </field>
@@ -52,7 +53,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="search_view_id" ref="view_search_purchase_order"/>
-            <field name="context">{'search_default_is_resource': 1}</field>
+            <field name="context">{'search_default_is_outsource': 1}</field>
         </record>
         <!--END ACTIONS-->
     </data>

@@ -9,9 +9,9 @@ class InvoiceSummary(models.Model):
     # BASIC FIELDS
     # ----------------------------------------------------------
     # TODO DEPRECATED
-    is_resource = fields.Boolean('Is Resource', default=False)
+    is_outsource = fields.Boolean('Is Outsource', default=False)
 
-    is_outsource = fields.Boolean('Is Resource', default=False)
+    is_outsource = fields.Boolean('Is Outsource', default=False)
 
     @api.onchange('objective', 'is_outsource', 'is_head_office', 'is_regional')
     def _onchange_invoice_ids_filter(self):

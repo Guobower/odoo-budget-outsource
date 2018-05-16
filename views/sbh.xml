@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+        <!--START VIEWS-->
+        <!--END VIEWS-->
+        <record model="ir.ui.view" id="view_form_sbh">
+            <field name="name">SBH</field>
+            <field name="model">budget.outsource.sbh</field>
+            <field name="arch" type="xml">
+                <form string="Mobilize">
+                    <header>
+                        <button string="Create SBH"
+                                name="generate_sbh"
+                                type="object"
+                                states="draft"/>
+                        <button string="Analyze SBH"
+                                name="analyze_sbh"
+                                type="object"
+                                states="in progress"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,in progress,closed"/>
+                    </header>
+                    <sheet>
+                        <group readonly="1" groups="base.group_no_one">
+                            <group>
+                                <field name="write_date"/>
+                            </group>
+                            <group>
+                            </group>
+                        </group>
+                        <div class="oe_button_box" name="button_box">
+                        </div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="division_id"
+                                       required="1"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="contractor_id"
+                                       required="1"
+                                       domain="[('contract_ids.is_outsource','=',True)]"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                                <field name="po_id"
+                                       required="1"
+                                       domain="[('is_outsource','=',True)]"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                                <field name="period_start" required="1"/>
+                                <field name="period_end" required="1"/>
+                            </group>
+                        </group>
+                        <group attrs="{'invisible': [('write_date', '=', False)]}">
+                            <group>
+                                <field name="sheet_filled_filename" invisible="1"/>
+                                <field name="sheet_filled" filename="sheet_filled_filename"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!--TREE VIEW-->
+        <record model="ir.ui.view" id="view_tree_sbh">
+            <field name="name">SBH</field>
+            <field name="model">budget.outsource.sbh</field>
+            <field name="arch" type="xml">
+                <tree default_order="id desc"
+                      decoration-success="state == 'in progress'"
+                      decoration-warning="state == 'draft'"
+                      decoration-muted="state in ['closed', 'cancelled']">
+                    <field name="division_id"/>
+                    <field name="contractor_id"/>
+                    <field name="po_id"/>
+                    <field name="period_start"/>
+                    <field name="period_end"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--START ACTIONS-->
+        <!--Contract Action-->
+        <record model="ir.actions.act_window" id="action_sbh">
+            <field name="name">Data Sheet</field>
+            <field name="res_model">budget.outsource.sbh</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tree_sbh"/>
+        </record>
+        <!--END ACTIONS-->
+    </data>
+</odoo>

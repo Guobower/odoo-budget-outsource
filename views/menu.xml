@@ -36,19 +36,29 @@
                 id="menu_mobilize_left_child"
                 name="Mobilize"
                 parent="menu_mobilization_left"
-                action="action_mobilize"/>
+                action="action_mobilize"
+                sequence="1"/>
 
         <menuitem
-                id="menu_sheet_left_child"
-                name="Sheet"
+                id="menu_datasheet_left_child"
+                name="Data Sheet"
                 parent="menu_mobilization_left"
-                action="action_sheet"/>
+                action="action_datasheet"
+                sequence="2"/>
+
+        <menuitem
+                id="menu_sbh_left_child"
+                name="SBH"
+                parent="menu_mobilization_left"
+                action="action_sbh"
+                sequence="3"/>
 
         <menuitem
                 id="menu_change_left_child"
                 name="Change Wizard (TODO)"
                 parent="menu_mobilization_left"
-                action="action_mobilize"/>
+                action="action_mobilize"
+                sequence="4"/>
 
         <menuitem
                 id="menu_invoice_outsource_left_child"

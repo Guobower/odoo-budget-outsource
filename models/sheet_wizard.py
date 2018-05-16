@@ -2,12 +2,12 @@
 from odoo import models, fields, api
 
 from odoo.exceptions import ValidationError
-from ..creator import SBH, DATASHEET
+from ..sheet_creator import Sbh, DataSheet
 
 XLSX_PASS = 'tbpc19'
 
 
-class Sheet(models.Model):
+class SheetWizard(models.Model):
     _name = 'budget.outsource.sheet.wizard'
     _rec_name = 'name'
     _description = 'Sheet'
@@ -57,10 +57,10 @@ class Sheet(models.Model):
         total_required_hours = self.total_required_hours
 
         if self.generator_choice in [1, 2, 3, 4]:
-            obj = SBH(env=self.env, form_name="SBH-FORM.xlsx", xlsx_pass=XLSX_PASS)
+            obj = Sbh(env=self.env, form_name="SBH-FORM.xlsx", xlsx_pass=XLSX_PASS)
 
         elif self.generator_choice in [5, 6]:
-            obj = DATASHEET(env=self.env, form_name="DATASHEET.xlsx", xlsx_pass=XLSX_PASS)
+            obj = DataSheet(env=self.env, form_name="DATASHEET.xlsx", xlsx_pass=XLSX_PASS)
 
         else:
             raise ValidationError('Invalid Choice')
