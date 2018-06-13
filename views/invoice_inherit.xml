@@ -17,6 +17,20 @@
 
             </field>
         </record>
+
+        <record model="ir.ui.view" id="view_tree_invoice_outsource">
+            <field name="name">Invoice</field>
+            <field name="model">budget.invoice.invoice</field>
+            <field name="mode">primary</field>
+            <field name="inherit_id" ref="budget_invoice.view_form_invoice"/>
+
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='responsible_id']" position="after">
+                    <field name="approval_ref"/>
+                </xpath>
+            </field>
+        </record>
+
         <!--END VIEWS-->
 
         <!--START SEARCH-->
@@ -40,7 +54,7 @@
             <field name="res_model">budget.invoice.invoice</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form,pivot</field>
-            <field name="view_id" ref="budget_invoice.view_tree_invoice"/>
+            <field name="view_id" ref="view_tree_invoice"/>
             <field name="search_view_id" ref="search_invoice"/>
             <field name="context">{
                 'form_view_ref': 'budget_invoice.view_form_invoice',
