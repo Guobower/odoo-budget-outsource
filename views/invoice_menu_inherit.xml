@@ -3,29 +3,29 @@
 <odoo>
     <data>
         <menuitem
-                id="menu_invoice_outsource_left"
-                name="Resource"
+                id="menu_invoice_outsources_left"
+                name="Outsource"
                 sequence="4"
                 parent="budget_invoice.menu_invoice_top"
                 groups="base.group_no_one,budget_outsource.group_outsource_dependent,budget_outsource.group_outsource_user,budget_outsource.group_outsource_manager"/>
         <!-- INVOICE VIEW FOR RESOURCE -->
         <menuitem
-                id="menu_invoice_outsource_left_child"
+                id="menu_invoice_outsources_left_child"
                 name="Invoice"
                 sequence="1"
-                parent="menu_invoice_outsource_left"
+                parent="menu_invoice_outsources_left"
                 action="budget_outsource.action_invoice_outsource"/>
         <menuitem
-                id="menu_invoice_summary_outsource_left_child"
+                id="menu_invoice_summary_outsources_left_child"
                 name="Invoice Summary"
                 sequence="2"
-                parent="menu_invoice_outsource_left"
+                parent="menu_invoice_outsources_left"
                 action="budget_outsource.action_invoice_summary_outsource"/>
         <menuitem
                 id="menu_purchase_order_resource_left_child"
                 name="Purchase Order"
                 sequence="3"
-                parent="menu_invoice_outsource_left"
+                parent="menu_invoice_outsources_left"
                 action="budget_purchase_order.action_purchase_order"/>
 
     </data>
