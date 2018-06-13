@@ -22,7 +22,7 @@
             <field name="name">Invoice</field>
             <field name="model">budget.invoice.invoice</field>
             <field name="mode">primary</field>
-            <field name="inherit_id" ref="budget_invoice.view_form_invoice"/>
+            <field name="inherit_id" ref="budget_invoice.view_tree_invoice"/>
 
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='responsible_id']" position="after">
