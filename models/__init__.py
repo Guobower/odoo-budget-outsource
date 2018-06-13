@@ -15,4 +15,5 @@ from . import datasheet_upload_wizard
 
 # INHERITANCE MODELS
 # ----------------------------------------------------------
-from . import cear_inherit, contract_inherit, invoice_inherit, invoice_summary_inherit, purchase_order_inherit
+from . import cear_inherit, contract_inherit, invoice_inherit, invoice_summary_inherit, purchase_order_inherit, \
+    end_user_spoc_inherit

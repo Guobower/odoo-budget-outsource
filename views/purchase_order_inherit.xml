@@ -38,7 +38,7 @@
                 <xpath expr="//search" position="inside">
                     <filter name="is_outsource"
                             string="Outsource"
-                            domain="[('contractor_id.contract_ids.is_outsource', '=', True)]"/>
+                            domain="[('is_outsource', '=', True)]"/>
                     <field name="contractor_id"/>
                 </xpath>
             </field>

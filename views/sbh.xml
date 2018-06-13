@@ -30,6 +30,11 @@
                             </group>
                         </group>
                         <div class="oe_button_box" name="button_box">
+                            <button string="Show Attendance"
+                                    name="action_show_attendance"
+                                    type="object"
+                                    help="Show Attendance"
+                                    icon="fa-user-circle-o"/>
                         </div>
                         <div class="oe_title">
                             <h1>

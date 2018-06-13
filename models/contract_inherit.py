@@ -9,3 +9,7 @@ class Contract(models.Model):
     # BASIC FIELDS
     # ----------------------------------------------------------
     is_outsource = fields.Boolean('Is Outsource', default=False)
+
+    unit_rate_ids = fields.One2many('budget.outsource.unit.rate',
+                                    'contract_id',
+                                    string='Unit Rates')

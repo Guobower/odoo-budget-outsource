@@ -37,12 +37,12 @@
         <!--END SEARCH-->
 
         <!--START ACTIONS-->
-        <!--Contract Action-->
+        <!--Position Action-->
         <record model="ir.actions.act_window" id="action_position">
             <field name="name">Position</field>
             <field name="res_model">budget.outsource.position</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree,form,pivot</field>
             <field name="view_id" ref="view_tree_position"/>
         </record>
         <!--END ACTIONS-->

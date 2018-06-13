@@ -88,11 +88,12 @@ class Dumper(object):
 
         return total - 1
 
-    def progress(self):
+    def progress(self, msg=None):
         print_string = '\rN: {new:06d} E: {exist:06d} {percent:.2%} - {current}/{total} '.format(
             new=self.sr_new, exist=self.sr_exist,
             percent=float(self.sr) / float(self.total),
             current=self.sr, total=self.total)
+        print_string += ' %s' % msg if msg else ''
         print(print_string, end="")
 
     def start(self):
@@ -107,6 +108,10 @@ class Dumper(object):
         print('\nLapse Time: {:.5f}sec'.format(lapse_time))
         return lapse_time
 
+    def skip(self, msg):
+        self.sr += 1
+        self.progress(msg)
+
     def exist(self):
         self.sr += 1
         self.sr_exist += 1
@@ -118,278 +123,6 @@ class Dumper(object):
         self.sr += 1
         self.sr_new += 1
         self.progress()
-
-
-def dump_unit_price(env=None, filename='UnitPrice.csv'):
-    dumper = Dumper(env=env, model_obj='outsource.unit.rate', filename=filename)
-    dumper.start()
-    unit_price_model = dumper.model
-
-    with open(dumper.csvpath) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            unit_price = unit_price_model.search([('access_db_id', '=', row["id"])], limit=1)
-
-            if unit_price:
-                dumper.exist()
-                continue
-            else:
-                data = {
-                    'access_db_id': row["id"],
-                    'po_level': row['po_level'],
-                    'po_position': row['po_position'],
-                    'contractor': row['contractor'],
-                    'amount': to_dec(row['amount']),
-                    'percent': row['percent'],
-                }
-                dumper.create(data)
-    dumper.end()
-
-
-def dump_purchase_order(env=None, filename='TechPO.csv'):
-    dumper = Dumper(env=env, model_obj='outsource.purchase.order', filename=filename)
-    dumper.start()
-    po_model = dumper.model
-
-    with open(dumper.csvpath) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            po = po_model.search([('access_db_id', '=', row["POID"])])
-
-            if len(po) != 0:
-                dumper.exist()
-                continue
-            else:
-                data = {
-                    'access_db_id': row["POID"],
-                    'po_num': row["PONum"],
-                    #                'po_date': to_date_format(row["PODate"]),
-                    'po_value': to_dec(row["POValue"]),
-                    'contractor': row["Contractor"],
-                    'budget': row["Budget"],
-                    'capex_commitment_value': to_dec(row["CPXComValue"]),
-                    'capex_expenditure_value': to_dec(row["CPXExpValue"]),
-                    'opex_value': to_dec(row["OPXValue"]),
-                    'revenue_value': to_dec(row["REVValue"]),
-                    'task_num': row["TaskNum"],
-                    'renew_status': row["RenewStatus"],
-                    'po_status': row["POStatus"],
-                    'po_remarks': row["PORemarks"],
-                    'po_type': row["POType"],
-                }
-                dumper.create(data)
-
-    dumper.end()
-
-
-def dump_purchase_order_line(env=None, filename='TechPOLine.csv'):
-    dumper = Dumper(env=env, model_obj='outsource.purchase.order.line', filename=filename)
-    dumper.start()
-    po_line_model = dumper.model
-
-    with open(dumper.csvpath) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            po_line = po_line_model.search([('access_db_id', '=', row["POLineID"])])
-            if len(po_line) != 0:
-                dumper.exist()
-                continue
-            else:
-                po = env['outsource.purchase.order'].search([('access_db_id', '=', row["POID"])])
-
-                if len(po) == 0:
-                    print("\nPurchase Order ID# %s Does't Exist" % row["POID"], end='')
-                    continue
-                elif len(po) > 1:
-                    print("\nPurchase Order ID# %s Multiple Record" % row["POID"], end='')
-                    continue
-                else:
-                    data = {
-                        'po_id': po[0].id,
-                        'access_db_id': row["POLineID"],
-                        'line_num': row["POLineNum"],
-                        'line_duration': row["POLineDuration"],
-                        'line_value': to_dec(row["POLineValue"]),
-                        'line_revise_rate': to_dec(row["POLineRValue"]),
-                        'line_rate': to_dec(row["POLineRate"]),
-                        'line_status': row["POLineStatus"],
-                        'line_actuals': row["POLineActuals"],
-                        'capex_percent': row["CPXPercent"],
-                        'opex_percent': row["OPXPercent"],
-                        'revenue_percent': row["REVPercent"],
-                    }
-                    dumper.create(data)
-    dumper.end()
-
-
-def dump_purchase_order_line_details(env=None, filename='TechPOLineDetail.csv'):
-    dumper = Dumper(env=env, model_obj='outsource.purchase.order.line.detail', filename=filename)
-    dumper.start()
-    po_line_detail_model = dumper.model
-
-    with open(dumper.csvpath) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            po_line_detail = po_line_detail_model.search([('access_db_id', '=', row["PODetID"])])
-            if len(po_line_detail) != 0:
-                dumper.exist()
-                continue
-            else:
-                po_line = env['outsource.purchase.order.line'].search([('access_db_id', '=', row["POLineID"])])
-                if len(po_line) == 0:
-                    print("\nPurchase Order Line ID# %s Does't Exist" % row["POLineID"], end='')
-                    continue
-                else:
-                    data = {
-                        'po_line_id': po_line[0].id,
-                        'access_db_id': row["PODetID"],
-                        'po_os_ref': row["POOSRef"],
-                        'po_position': row["POPosition"],
-                        'po_level': row["POLevel"],
-                        'po_rate': to_dec(row["PORate"]),
-                        'po_revise_rate': to_dec(row["PORRate"]),
-                        'rate': to_dec(row["Rate"]),
-                        'division': row["Division"],
-                        'section': row["Section"],
-                        'sub_section': row["SubSection"],
-                        'director_name': row["DirName"],
-                        'frozen_status': row["FrozenStatus"],
-                        'approval_ref_num': row["ApprovalRefNum"],
-                        'approval_reason': row["ApprovalReason"],
-                        'kpi_2016': row["2016KPI"],
-                        'capex_percent': row["CPX%Age"],
-                        'opex_percent': row["OPX%Age"],
-                        'revenue_percent': row["REV%Age"],
-                        'rate_diff_percent_manual': to_dec(row['PORate%IncrManual']),
-                        'rate_diff_percent_calculated': to_dec(row['OdooAdditional%'])
-
-                    }
-                    dumper.create(data)
-    dumper.end()
-
-
-def dump_invoice(env=None, filename='TechInvoiceMgmt.csv'):
-    dumper = Dumper(env=env, model_obj='outsource.invoice', filename=filename)
-    dumper.start()
-    invoice_model = dumper.model
-
-    with open(dumper.csvpath) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            invoice = invoice_model.search([('access_db_id', '=', row['InvID'])], limit=1)
-            resource_id = env['outsource.resource'].search([('access_db_id', '=', row['ResID'])], limit=1)
-            po_line_detail_id = env['outsource.purchase.order.line.detail'].search(
-                [('access_db_id', '=', row['PODetID'])],
-                limit=1)
-            if not resource_id or not po_line_detail_id:
-                continue
-            if invoice:
-                dumper.exist()
-                continue
-            else:
-                data = {
-                    'access_db_id': row['InvID'],
-                    'resource_id': resource_id.id,
-                    'po_line_detail_id': po_line_detail_id.id,
-                    'invoice_date': to_date_format(row['InvMonth']),
-                    'invoice_hour': row['InvMonthHrs'],
-                    'invoice_claim': row['InvClaimHrs'],
-                    'invoice_cert_amount': row['InvCertAmt'],
-                    'remarks': row['Remarks']
-                }
-
-                dumper.create(data)
-    dumper.end()
-
-
-def dump_resource(env=None, filename='RPT01_ Monthly Accruals - Mobillized.csv'):
-    dumper = Dumper(env=env, model_obj='outsource.resource', filename=filename)
-    dumper.start()
-    resource_model = dumper.model
-
-    with open(dumper.csvpath) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            resource = resource_model.search([('access_db_id', '=', row["ResID"])], limit=1)
-            po_id = env['outsource.purchase.order'].search([('access_db_id', '=', row["POID"])], limit=1)
-            po_line_detail_id = env['outsource.purchase.order.line.detail'].search(
-                [('access_db_id', '=', row["PODetID"])], limit=1)
-
-            if resource:
-                dumper.exist()
-                continue
-            else:
-                data = {
-                    'po_id': po_id.id,
-                    'po_line_detail_id': po_line_detail_id.id,
-                    'access_db_id': row["ResID"],
-                    'res_type': row['ResType'],
-                    'res_type_class': row['ResTypeClass'],
-                    'agency_ref_num': row['AgencyRefNum'],
-                    'res_emp_num': row['ResEmpNum'],
-                    'res_full_name': row['ResFullName'],
-                    # TODO FIX EMPTY
-                    'date_of_join': to_date_format(row['DoJ']),
-                    'res_job_title': row['ResJobTitle'],
-                    'grade_level': row['GradeLevel'],
-                    'po_position': row['POPosition'],
-                    'po_level': row['POLevel'],
-                    'division': row['Division'],
-                    'section': row['Section'],
-                    'manager': row['Manager'],
-                    'director': row['Director'],
-                    'rate': row['Rate'],
-                    #                    'po_rate_percent_increase': to_dec(row['PORate%Incr']),
-                    'capex_percent': row['CPX%Age'],
-                    'capex_rate': row['CAPEXRate'],
-                    'opex_percent': row['OPX%Age'],
-                    'opex_rate': row['OPEXRate'],
-                    'revenue_percent': row['REV%Age'],
-                    'revenue_rate': row['REVENUERate'],
-                    'remarks': row['Remarks'],
-                    'po_num': row['PONum'],
-                    'po_value': row['POValue'],
-                    'capex_commitment_value': row['CPXComValue'],
-                    'opex_value': row['OPXValue'],
-                    'revenue_value': row['REVValue'],
-                    'contractor': row['Contractor'],
-                    'po_os_ref': row['POOSRef'],
-                    'has_tool_or_uniform': to_bool(row['ToolsProvided']),
-                }
-                dumper.create(data)
-    dumper.end()
-
-
-def clear_all(env):
-    tables = [
-        'outsource_purchase_order',
-        'outsource_purchase_order_line',
-        'outsource_purchase_order_line_detail',
-        'outsource_resource',
-        'outsource_invoice',
-        'outsource_unit_rate'
-    ]
-    for table in tables:
-        env.cr.execute("TRUNCATE %s CASCADE" % table)
-
-    env.cr.commit()
-
-
-def start(env):
-    dump_unit_price(env)
-    dump_purchase_order(env)
-    dump_purchase_order_line(env)
-    dump_purchase_order_line_details(env)
-    dump_resource(env)
-    dump_invoice(env)
-
-
-def start_without_invoice(env):
-    dump_unit_price(env)
-    dump_purchase_order(env)
-    dump_purchase_order_line(env)
-    dump_purchase_order_line_details(env)
-    dump_resource(env)
 
 
 def migrate_unit_price(env=None, filename='UnitPrice.csv'):
@@ -497,7 +230,14 @@ def migrate_position(env=None, filename='TechPOLineDetail.csv'):
             po_id = env['budget.purchase.order'].search([('no', 'like', row['PONum'])])
             division_id = env['budget.enduser.division'].search([('alias', '=', row['Division'])])
 
-            if len(po_id) != 1 or not len(division_id) != 1:
+            if len(po_id) != 1:
+                msg = 'PO {} {}'.format(row['PONum'], len(po_id))
+                dumper.skip(msg)
+                continue
+
+            if len(division_id) != 1:
+                msg = 'DIVISION {} {}'.format(row['Division'], len(division_id))
+                dumper.skip(msg)
                 continue
 
             data = {
@@ -584,10 +324,41 @@ def migrate_mobilize(env=None, filename='RPT01_ Monthly Accruals - Mobillized.cs
                 'position_id': position_id.id,
                 'resource_id': resource_id.id,
                 'revise_rate': float(searched),
-                'state': 'mobilized'
+                'state': 'mobilized',
+                'manager': row['Manager'],
+                'director': row['Director']
             }
             dumper.create(data)
     dumper.end()
+
+
+def migration_correction(env):
+    po_ids = env['budget.purchase.order'].search([
+        ('outsource_position_ids', '!=', False)
+    ])
+
+    contract_ids = env['budget.contractor.contract'].search([
+        ('contract_ref', 'like', '713H')
+    ])
+
+    contractor_ids = env['budget.contractor.contractor'].search([
+        ('contract_ids.contract_ref', 'like', '713H')
+    ])
+
+    for i in [po_ids, contract_ids, contractor_ids]:
+        i.write({
+            'is_outsource': True
+        })
+
+    unit_rate_ids = env['budget.outsource.unit.rate'].search([])
+
+    for unit_rate_id in unit_rate_ids:
+        contract_id = env['budget.contractor.contract'].search([
+            ('contract_ref', 'like', '713H'),
+            ('contractor_id', '=', unit_rate_id.contractor_id.id)
+        ])
+        unit_rate_id.contract_id = contract_id
+    env.cr.commit()
 
 
 def start_migrate(env):
@@ -596,9 +367,3 @@ def start_migrate(env):
     migrate_position(env)
     migrate_resource(env)
     migrate_mobilize(env)
-
-
-if __name__ == '__main__':
-    env_vars = shell('dev_db11')
-    env = env_vars.get('env')
-    start_migrate(env)

@@ -25,5 +25,10 @@
             <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
         </record>
 
+        <record model="res.groups" id="group_outsource_enduser">
+            <field name="name">End User</field>
+            <field name="category_id" ref="category_outsource"/>
+        </record>
+
     </data>
 </odoo>

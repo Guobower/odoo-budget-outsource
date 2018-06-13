@@ -18,3 +18,4 @@ class UnitRate(models.Model):
                                   default=lambda self: self.env.user.company_id.currency_id)
 
     contractor_id = fields.Many2one('budget.contractor.contractor', string='Contractor')
+    contract_id = fields.Many2one('budget.contractor.contract', string='Contract')

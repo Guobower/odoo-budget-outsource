@@ -53,12 +53,12 @@
                 action="action_sbh"
                 sequence="3"/>
 
-        <menuitem
-                id="menu_change_left_child"
-                name="Change Wizard (TODO)"
-                parent="menu_mobilization_left"
-                action="action_mobilize"
-                sequence="4"/>
+        <!--<menuitem-->
+                <!--id="menu_change_left_child"-->
+                <!--name="Change Wizard (TODO)"-->
+                <!--parent="menu_mobilization_left"-->
+                <!--action="action_mobilize"-->
+                <!--sequence="4"/>-->
 
         <menuitem
                 id="menu_invoice_outsource_left_child"
@@ -70,7 +70,7 @@
                 id="menu_invoice_summary_outsource_left_child"
                 name="Invoice Summary"
                 parent="menu_invoice_outsource_left"
-                action="action_invoice_outsource"/>
+                action="action_invoice_summary_outsource"/>
 
         <menuitem
                 id="menu_purchase_order_left_child"
@@ -113,6 +113,12 @@
                 name="Contract"
                 parent="menu_dependencies_left"
                 action="action_contract"/>
+
+        <menuitem
+                id="menu_enduser_spoc"
+                name="SPOC"
+                parent="menu_dependencies_left"
+                action="budget_enduser.action_spoc"/>
 
     </data>
 </odoo>

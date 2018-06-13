@@ -11,13 +11,14 @@ from openpyxl.styles import Protection
 from .utils import *
 from .utils import load_workbook
 from .utils import odoo_to_pandas_list
-import datetime
+
+from .sheet_mixin import MOBILIZE_COLUMNS
 
 
 class DataSheet(models.Model):
     _name = 'budget.outsource.datasheet'
     _description = 'Data Sheet'
-    _inherit = ['budget.outsource.sheet']
+    _inherit = ['budget.outsource.sheet.mixin']
 
     # CHOICES
     # ----------------------------------------------------------
@@ -53,7 +54,6 @@ class DataSheet(models.Model):
         ])
 
         new_attendance_ids = set(mobilize_ids) - set(attendance_ids.mapped('mobilize_id.id'))
-        # TODO FIX CREATION DUPLICATES
         # period_start, period_end, required_hours, mobilize_id, ,datasheet_id
         for i in new_attendance_ids:
             self.env['budget.outsource.mobilize.attendance'].create({
@@ -68,32 +68,14 @@ class DataSheet(models.Model):
         querysets = self.get_querysets()
         context = super(DataSheet, self).get_context()
         context['datasheet_template_path'] = os.path.join(context['form_template_path'], 'DATASHEET.xlsx')
-        context['qs_mobilize'] = querysets['qs_mobilize']
-        qs_mobilize = querysets['qs_mobilize']
+        qs_mobilize = context['qs_mobilize'] = querysets['qs_mobilize']
 
         # DICTIONARY OF COLUMNS/FIELDS
         # (field_name, renamed_column)
-        mobilize_columns = {
-            'position_id.division_id.alias': 'division_alias',
-            'position_id.section_id.name': 'section_name',
-            'manager': 'manager',
-            'director': 'director',
-            'resource_id.identifier': 'resID',
-            'position_id.identifier': 'positionID',
-            'position_id.unit_rate': 'unit_rate',
-            'rate': 'rate',
-            'rate_variance_percent': 'rate_variance_percent',
-            'position_id.po_id.no': 'po_num',
-            'resource_id.agency_ref_num': 'agency_ref_num',
-            'resource_id.name': 'resource_name',
-            'position_id.name': 'position_name',
-            'position_id.level': 'position_level',
-            'resource_id.date_of_join': 'date_of_join',
-            'resource_id.has_tool_or_uniform': 'has_tool_or_uniform'
-        }
-        df_mobilize = pd.DataFrame(odoo_to_pandas_list(qs_mobilize, mobilize_columns.keys()))
+
+        df_mobilize = pd.DataFrame(odoo_to_pandas_list(qs_mobilize, MOBILIZE_COLUMNS.keys()))
         # RENAME COLUMN NAMES TO FOR EASY USAGE
-        df_mobilize.columns = [mobilize_columns[i] for i in df_mobilize.columns]
+        df_mobilize.columns = [MOBILIZE_COLUMNS[i] for i in df_mobilize.columns]
 
         df_mobilize.sort_values(
             by=['division_alias', 'manager', 'director', 'position_name'],
@@ -109,7 +91,6 @@ class DataSheet(models.Model):
     # ----------------------------------------------------------
     @api.one
     def generate_datasheet(self):
-        start = datetime.datetime.now()
         context = self.get_context()
         wb = load_workbook(context['datasheet_template_path'])
 
@@ -186,9 +167,6 @@ class DataSheet(models.Model):
 
         self.state = 'in progress'
         self.create_attendances(context)
-        end = datetime.datetime.now()
-
-        total_time_taken = start - end
 
     @api.one
     def analyze_datasheet(self):
@@ -234,27 +212,8 @@ class DataSheet(models.Model):
     # ----------------------------------------------------------
     @api.multi
     def action_show_attendance(self):
-        """ Open a window to make enhancement
-        """
-        tree = self.env.ref('budget_outsource.view_tree_mobilize_with_attendance')
-        context = {
-            'period_start': self.period_start,
-            'period_end': self.period_end
-        }
         domain = [('attendance_ids.datasheet_id', '=', self.id)]
-
-        return {
-            'name': 'Attendance',
-            'type': 'ir.actions.act_window',
-            'view_type': 'form',
-            'view_mode': 'tree',
-            'res_model': 'budget.outsource.mobilize',
-            'views': [(tree.id, 'tree')],
-            'view_id': tree.id,
-            'target': 'current',
-            'context': context,
-            'domain': domain
-        }
+        return super(DataSheet, self).action_show_attendance(domain)
 
     # POLYMORPH FUNCTIONS
     # ----------------------------------------------------------

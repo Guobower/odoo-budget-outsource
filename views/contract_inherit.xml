@@ -6,10 +6,26 @@
         <record model="ir.ui.view" id="view_form_contract_inherit">
             <field name="name">budget.contractor.contract.inherit.form</field>
             <field name="model">budget.contractor.contract</field>
+            <field name="mode">primary</field>
             <field name="inherit_id" ref="budget_contractor.view_form_contract"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='contractor_id']" position="before">
-                        <field name="is_outsource"/>
+                    <field name="is_outsource"/>
+                </xpath>
+            </field>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook[@name='bottom']" position="inside">
+                    <page string="Unit Rates">
+                        <field name="unit_rate_ids" context="{'default_contract_id': id}">
+                            <tree editable="bottom">
+                                <field name="contract_id" groups="base.group_no_one"/>
+                                <field name="position_name" required="1"/>
+                                <field name="position_level" required="1"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="amount"/>
+                            </tree>
+                        </field>
+                    </page>
                 </xpath>
             </field>
         </record>
@@ -39,7 +55,8 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="search_view_id" ref="view_search_contract"/>
-            <field name="context">{'search_default_is_outsource': 1}</field>
+            <field name="context">{'form_view_ref': 'budget_outsource.view_form_contract_inherit',
+                                   'search_default_is_outsource': 1}</field>
         </record>
         <!--END ACTIONS-->
     </data>

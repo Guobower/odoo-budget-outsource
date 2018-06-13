@@ -24,3 +24,4 @@ class MobilizeAttendance(models.Model):
     # ----------------------------------------------------------
     mobilize_id = fields.Many2one('budget.outsource.mobilize', string='Mobilized Resource')
     datasheet_id = fields.Many2one('budget.outsource.datasheet', string='Mobilized DataSheet')
+    sbh_id = fields.Many2one('budget.outsource.sbh', string='Mobilized SBH')
