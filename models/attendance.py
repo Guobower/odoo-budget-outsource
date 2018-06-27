@@ -10,6 +10,8 @@ class MobilizeAttendance(models.Model):
     # BASIC FIELDS
     # ----------------------------------------------------------
     is_verified = fields.Boolean()
+
+    is_approved = fields.Boolean()
     period_start = fields.Date()
     period_end = fields.Date()
 

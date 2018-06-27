@@ -25,6 +25,7 @@ Outsource Management
     'data': [
         'security/budget_outsource.xml',
         'security/ir.model.access.csv',
+        'security/budget_outsource_access_rule.xml',
 
         'views/mobilize.xml',
         'views/position.xml',
@@ -41,7 +42,7 @@ Outsource Management
         'views/oear_inherit.xml',
         'views/purchase_order_inherit.xml',
 
-        'views/invoice_menu_inherit.xml',
+        # 'views/invoice_menu_inherit.xml',
         'views/menu.xml',
     ],
     'demo': [

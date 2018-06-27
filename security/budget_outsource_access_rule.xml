@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<odoo>
+    <data>
+        <!-- MOBILIZE -->
+        <record id="budget_outsource_enduser_mobilize" model="ir.rule">
+            <field name="name">End-User Can see related Mobilization</field>
+            <field name="model_id" ref="model_budget_outsource_mobilize"/>
+            <field name="groups" eval="[(4, ref('group_outsource_enduser'))]"/>
+            <field name="domain_force">[('division_id.spoc_ids.user_id','=',user.id)]</field>
+        </record>
+        <!-- END MOBILIZE -->
+        <!-- SBH -->
+        <record id="budget_outsource_enduser_sbh" model="ir.rule">
+            <field name="name">End-User Can see related Mobilization</field>
+            <field name="model_id" ref="model_budget_outsource_sbh"/>
+            <field name="groups" eval="[(4, ref('group_outsource_enduser'))]"/>
+            <field name="domain_force">[('division_id.spoc_ids.user_id','=',user.id)]</field>
+        </record>
+        <!-- END SBH -->
+    </data>
+</odoo>

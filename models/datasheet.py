@@ -31,6 +31,9 @@ class DataSheet(models.Model):
     attendance_ids = fields.One2many('budget.outsource.mobilize.attendance',
                                      'datasheet_id',
                                      string='Attendances')
+    sbh_ids = fields.One2many('budget.outsource.sbh',
+                              'datasheet_id',
+                              string='SBH')
 
     # MISC
     # ----------------------------------------------------------
@@ -206,7 +209,50 @@ class DataSheet(models.Model):
                 'remarks': remarks
             })
 
-        self.state = 'closed'
+        self.state = 'approved'
+
+    @api.one
+    def generate_sbh(self):
+        distincts = []
+        mobilize_ids = self.attendance_ids.mapped('mobilize_id')
+        for i in mobilize_ids:
+            division_id = i.division_id.mapped('id')
+            contractor_id = i.resource_id.mapped('contractor_id.id')
+            po_id = i.position_id.mapped('po_id.id')
+
+            query_params = division_id + contractor_id + po_id
+            if len(query_params) < 3:
+                continue
+
+            record = f';'.join([str(j) for j in query_params])
+            if record not in distincts:
+                distincts += [record]
+
+        for i in distincts:
+            record = i.split(';')
+            sbh_id = self.env['budget.outsource.sbh'].create({
+                'division_id': record[0],
+                'contractor_id': record[1],
+                'po_id': record[2],
+                'datasheet_id': self.id,
+                'period_start': self.period_start,
+                'period_end': self.period_end,
+            })
+            sbh_id.generate_sbh()
+
+    @api.one
+    def reset(self):
+        self.attendance_ids.unlink()
+        super(DataSheet, self).reset()
+
+    @api.one
+    def set_closed(self):
+        states = self.attendance_ids.mapped('state')
+        if 'approved' in states and len(states) == 1:
+            self.state = 'closed'
+        else:
+            divisions = self.attendance_ids.filtered(lambda r: r.state != 'approved').mapped('division_id.name')
+            ValidationError(f"All attendance should be approved, please check sbh for {', '.join(divisions)}")
 
     # ACTION METHODS
     # ----------------------------------------------------------

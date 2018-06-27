@@ -44,6 +44,7 @@ class SheetMixin(models.AbstractModel):
     STATES = [
         ('draft', 'Draft'),
         ('in progress', 'In Progress'),
+        ('approved', 'Approved'),
         ('cancelled', 'Cancelled'),
         ('closed', 'Closed'),
     ]
@@ -51,7 +52,6 @@ class SheetMixin(models.AbstractModel):
     # BASIC FIELDS
     # ----------------------------------------------------------
     state = fields.Selection(selection=STATES, default='draft')
-    input_required_hours = fields.Float()
     period_start = fields.Date()
     period_end = fields.Date()
     ramadan_start = fields.Date()
@@ -70,8 +70,11 @@ class SheetMixin(models.AbstractModel):
     period_string = fields.Char(compute='_compute_period_string',
                                 store=True)
     required_hours = fields.Float(compute='_compute_required_hours',
+                                  inverse='_inverse_required_hours',
+                                  store=True,
                                   digits=(12, 2))
     required_days = fields.Float(compute='_compute_required_days',
+                                 store=True,
                                  digits=(12, 2))
 
     @api.one
@@ -94,10 +97,6 @@ class SheetMixin(models.AbstractModel):
         period_end = fields.Date.from_string(self.period_end)
         ramadan_start = fields.Date.from_string(self.ramadan_start)
         ramadan_end = fields.Date.from_string(self.ramadan_end)
-
-        if self.input_required_hours > 0:
-            self.required_hours = self.input_required_hours
-            return
 
         if not period_start or not period_end:
             self.required_hours = 0
@@ -133,6 +132,10 @@ class SheetMixin(models.AbstractModel):
 
         self.required_days = (period_end - period_start).days + 1
         return
+
+    @api.one
+    def _inverse_required_hours(self):
+        pass
 
     # MISC
     # ----------------------------------------------------------
@@ -178,6 +181,20 @@ class SheetMixin(models.AbstractModel):
             datas=data,
         )
         ir_attach.create(values)
+
+    # Button
+    # ----------------------------------------------------------
+    @api.one
+    def reset(self):
+        ir_attach = self.env['ir.attachment'].search([
+            ('res_id', '=', self.id),
+            ('res_model', '=', self._name)
+        ])
+
+        if ir_attach:
+            ir_attach.unlink()
+
+        self.state = 'draft'
 
     # ACTION METHODS
     # ----------------------------------------------------------

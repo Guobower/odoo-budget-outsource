@@ -70,6 +70,7 @@ class Dumper(object):
         self.sr = 0
         self.sr_new = 0
         self.sr_exist = 0
+        self.sr_skip = 0
         self.total = 0
         self.start_time = None
 
@@ -81,6 +82,13 @@ class Dumper(object):
     def model(self):
         return self.env[self.model_obj]
 
+    def log_msg(self, msg):
+        log_path = os.path.join(self.dumpdir, 'error.log')
+
+        with open(log_path, 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow(msg)
+
     def get_total_csv_row(self):
         with open(self.csvpath) as csvfile:
             reader = csv.reader(csvfile)
@@ -89,8 +97,8 @@ class Dumper(object):
         return total - 1
 
     def progress(self, msg=None):
-        print_string = '\rN: {new:06d} E: {exist:06d} {percent:.2%} - {current}/{total} '.format(
-            new=self.sr_new, exist=self.sr_exist,
+        print_string = '\rN: {new:06d} E: {exist:06d} S: {skip:06d} {percent:.2%} - {current}/{total} '.format(
+            new=self.sr_new, exist=self.sr_exist, skip=self.sr_skip,
             percent=float(self.sr) / float(self.total),
             current=self.sr, total=self.total)
         print_string += ' %s' % msg if msg else ''
@@ -110,7 +118,9 @@ class Dumper(object):
 
     def skip(self, msg):
         self.sr += 1
+        self.sr_skip += 1
         self.progress(msg)
+        self.log_msg(msg)
 
     def exist(self):
         self.sr += 1
@@ -118,8 +128,13 @@ class Dumper(object):
         self.progress()
 
     def create(self, data):
-        self.model.create(data)
-        self.env.cr.commit()
+        try:
+            self.model.create(data)
+            self.env.cr.commit()
+        except Exception as e:
+            self.env.cr.rollback()
+            print('{} in {} for {}'.format(e, self.sr, self.filename))
+
         self.sr += 1
         self.sr_new += 1
         self.progress()
@@ -147,6 +162,7 @@ def migrate_unit_price(env=None, filename='UnitPrice.csv'):
 
             if len(contractor_id) > 1:
                 print(contractor_id.mapped('name'))
+                continue
 
             elif not contractor_id:
                 continue
@@ -174,13 +190,35 @@ def migrate_unit_price(env=None, filename='UnitPrice.csv'):
 
 def migrate_purchase_order(env=None, filename='TechPO.csv'):
     dumper = Dumper(env=env, model_obj='budget.purchase.order', filename=filename)
+
+    # ============================================================================================================
+    # DROP NOT REQUIRED ITEMS
+    # ============================================================================================================
+    df_mobilize = pd.read_csv(os.path.join(dumper.dumpdir, 'RPT01_ Monthly Accruals - Mobillized.csv'))[['POID']]
+    df_po = pd.read_csv(os.path.join(dumper.dumpdir, 'TechPO.csv'))
+    required_columns = list(df_po.columns)
+
+    df_po = pd.merge(left=df_mobilize, right=df_po,
+                     how='left', left_on='POID', right_on='POID')
+
+    df_po = df_po[required_columns]
+    df_po.drop_duplicates(df_po.columns, inplace=True)
+
+    df_po.to_csv(os.path.join(dumper.dumpdir, 'TechPO.csv'), index=False)
+    # ============================================================================================================
+    # END DROP NOT REQUIRED ITEMS
+    # ============================================================================================================
+
     dumper.start()
     po_model = dumper.model
 
     with open(dumper.csvpath) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            po_id = po_model.search([('no', '=', row["PONum"])])
+            po_num = row["PONum"].strip()
+            po_num = po_num if '-' else po_num + '-0'
+            po_id = po_model.search([('no', 'like', po_num)])
+
             if row['Contractor'] == 'REACH':
                 contractor_name = 'REACH EMPLOYMENT SERVICES'
             elif row['Contractor'] == 'SHAHID':
@@ -204,9 +242,7 @@ def migrate_purchase_order(env=None, filename='TechPO.csv'):
                 data = {
                     'no': row["PONum"],
                     'amount': to_dec(row["POValue"]),
-
                     'contractor_id': contractor_id.id,
-
                     'remark': row["PORemarks"],
                 }
                 dumper.create(data)
@@ -216,6 +252,49 @@ def migrate_purchase_order(env=None, filename='TechPO.csv'):
 
 def migrate_position(env=None, filename='TechPOLineDetail.csv'):
     dumper = Dumper(env=env, model_obj='budget.outsource.position', filename=filename)
+
+    # ============================================================================================================
+    # ADD POID IN THE POSITIONS
+    # ============================================================================================================
+    df_po_detail = pd.read_csv(os.path.join(dumper.dumpdir, 'TechPOLineDetail.csv'))
+
+    if 'PONum' in df_po_detail.columns:
+        df_po_detail.drop(['PONum'], 1, inplace=True)
+
+    df_po_line = pd.read_csv(os.path.join(dumper.dumpdir, 'TechPOLine.csv'))[['POLineID', 'POID']]
+    df_po = pd.read_csv(os.path.join(dumper.dumpdir, 'TechPO.csv'))[['PONum', 'POID']]
+
+    required_columns = list(df_po_detail.columns) + ['PONum']
+    df_po_detail = pd.merge(left=df_po_detail, right=df_po_line,
+                            how='left', left_on='POLineID', right_on='POLineID')
+
+    df_po_detail = pd.merge(left=df_po_detail, right=df_po,
+                            how='left', left_on='POID', right_on='POID')
+
+    df_po_detail = df_po_detail[required_columns]
+    df_po_detail.to_csv(os.path.join(dumper.dumpdir, 'TechPOLineDetail.csv'), index=False)
+    # ============================================================================================================
+    # END ADD POID IN THE POSITIONS
+    # ============================================================================================================
+
+    # ============================================================================================================
+    # DROP NOT REQUIRED ITEMS
+    # ============================================================================================================
+    df_mobilize = pd.read_csv(os.path.join(dumper.dumpdir, 'RPT01_ Monthly Accruals - Mobillized.csv'))[['PODetID']]
+    df_po_detail = pd.read_csv(os.path.join(dumper.dumpdir, 'TechPOLineDetail.csv'))
+    required_columns = list(df_po_detail.columns)
+
+    df_po_detail = pd.merge(left=df_mobilize, right=df_po_detail,
+                     how='left', left_on='PODetID', right_on='PODetID')
+
+    df_po_detail = df_po_detail[required_columns]
+    df_po_detail.drop_duplicates(df_po_detail.columns, inplace=True)
+
+    df_po_detail.to_csv(os.path.join(dumper.dumpdir, 'TechPOLineDetail.csv'), index=False)
+    # ============================================================================================================
+    # END DROP NOT REQUIRED ITEMS
+    # ============================================================================================================
+
     dumper.start()
     position_model = dumper.model
     with open(dumper.csvpath) as csvfile:
@@ -227,16 +306,16 @@ def migrate_position(env=None, filename='TechPOLineDetail.csv'):
                 dumper.exist()
                 continue
 
-            po_id = env['budget.purchase.order'].search([('no', 'like', row['PONum'])])
+            po_id = env['budget.purchase.order'].search([('no', 'like', row['PONum'].strip())])
             division_id = env['budget.enduser.division'].search([('alias', '=', row['Division'])])
 
             if len(po_id) != 1:
-                msg = 'PO {} {}'.format(row['PONum'], len(po_id))
+                msg = 'PO {} has {} records in the system'.format(row['PONum'], len(po_id))
                 dumper.skip(msg)
                 continue
 
             if len(division_id) != 1:
-                msg = 'DIVISION {} {}'.format(row['Division'], len(division_id))
+                msg = 'DIVISION {} has {} records in the system'.format(row['Division'], len(division_id))
                 dumper.skip(msg)
                 continue
 
@@ -304,6 +383,7 @@ def migrate_mobilize(env=None, filename='RPT01_ Monthly Accruals - Mobillized.cs
 
             position_id = env['budget.outsource.position'].search([('identifier', '=', row['PODetID'])])
             resource_id = env['budget.outsource.resource'].search([('identifier', '=', row['ResID'])])
+
             if not position_id and not resource_id:
                 continue
 
@@ -316,14 +396,12 @@ def migrate_mobilize(env=None, filename='RPT01_ Monthly Accruals - Mobillized.cs
                 dumper.exist()
                 continue
 
-            df_position = pd.read_csv(os.path.join(DUMP_DIR, 'TechPOLineDetail.csv'))
-            df_position = df_position.fillna(0)
-            searched = df_position.loc[df_position['PODetID'] == int(position_id.identifier)]['PORRate']
+            revise_rate = int(row['Rate']) if not int(position_id.unit_rate) == row['Rate'] else 0
 
             data = {
                 'position_id': position_id.id,
                 'resource_id': resource_id.id,
-                'revise_rate': float(searched),
+                'revise_rate': revise_rate,
                 'state': 'mobilized',
                 'manager': row['Manager'],
                 'director': row['Director']
@@ -341,11 +419,7 @@ def migration_correction(env):
         ('contract_ref', 'like', '713H')
     ])
 
-    contractor_ids = env['budget.contractor.contractor'].search([
-        ('contract_ids.contract_ref', 'like', '713H')
-    ])
-
-    for i in [po_ids, contract_ids, contractor_ids]:
+    for i in [po_ids, contract_ids]:
         i.write({
             'is_outsource': True
         })
@@ -353,11 +427,12 @@ def migration_correction(env):
     unit_rate_ids = env['budget.outsource.unit.rate'].search([])
 
     for unit_rate_id in unit_rate_ids:
-        contract_id = env['budget.contractor.contract'].search([
+        contract_ids = env['budget.contractor.contract'].search([
             ('contract_ref', 'like', '713H'),
             ('contractor_id', '=', unit_rate_id.contractor_id.id)
         ])
-        unit_rate_id.contract_id = contract_id
+        for contract_id in contract_ids:
+            unit_rate_id.contract_id = contract_id
     env.cr.commit()
 
 
@@ -367,3 +442,4 @@ def start_migrate(env):
     migrate_position(env)
     migrate_resource(env)
     migrate_mobilize(env)
+    migration_correction(env)

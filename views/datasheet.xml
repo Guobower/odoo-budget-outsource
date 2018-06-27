@@ -10,15 +10,22 @@
             <field name="arch" type="xml">
                 <form string="Mobilize">
                     <header>
+                        <button string="Reset"
+                                name="reset"
+                                type="object"
+                                groups="base.group_system,base.group_no_one"/>
                         <button string="Create Datasheet"
                                 name="generate_datasheet"
                                 type="object"
-                                attrs="{'invisible': [('write_date', '=', False)]}"
                                 states="draft"/>
                         <button string="Analyze Datasheet"
                                 name="analyze_datasheet"
                                 type="object"
-                                attrs="{'invisible': [('write_date', '=', False)]}"/>
+                                states="in progress"/>
+                        <button string="Generate SBH"
+                                name="generate_sbh"
+                                type="object"
+                                states="approved"/>
                         <field name="state" widget="statusbar"
                                statusbar_visible="draft,in progress,closed"/>
                     </header>
@@ -51,7 +58,7 @@
                                 <field name="period_end" required="1"/>
                             </group>
                             <group>
-                                <field name="input_required_hours"/>
+                                <field name="required_hours"/>
                                 <field name="ramadan_start"/>
                                 <field name="ramadan_end"/>
                             </group>
@@ -61,6 +68,24 @@
                                 <field name="sheet_filled_filename" invisible="1"/>
                                 <field name="sheet_filled" filename="sheet_filled_filename"/>
                             </group>
+                        </group>
+                        <group attrs="{'invisible': [('write_date', '=', False)]}">
+                            <field name="sbh_ids" readonly="1">
+                                <tree default_order="state desc"
+                                      decoration-success="state == 'in progress'"
+                                      decoration-warning="state == 'draft'"
+                                      decoration-muted="state in ['closed', 'cancelled']">
+                                    <field name="division_id"/>
+                                    <field name="po_id"/>
+                                    <field name="state"/>
+                                    <button name="set_approved" string="Approve" type="object"
+                                            icon="fa-check"
+                                            states="in progress"/>
+                                    <button name="download_sbh" string="Download" type="object"
+                                            icon="fa-download text-warning"
+                                            states="in progress"/>
+                                </tree>
+                            </field>
                         </group>
                     </sheet>
                 </form>
@@ -76,7 +101,6 @@
                       decoration-success="state == 'in progress'"
                       decoration-warning="state == 'draft'"
                       decoration-muted="state in ['closed', 'cancelled']">
-                    <field name="state" invisible="1"/>
                     <field name="contractor_id"/>
                     <field name="required_hours"/>
                     <field name="period_start"/>
@@ -84,6 +108,7 @@
                     <field name="ramadan_start"/>
                     <field name="ramadan_end"/>
                     <field name="po_id"/>
+                    <field name="state"/>
                 </tree>
             </field>
         </record>

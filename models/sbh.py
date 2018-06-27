@@ -28,6 +28,10 @@ class Sbh(models.Model):
 
     # RELATIONSHIPS
     # ----------------------------------------------------------
+    attendance_ids = fields.One2many('budget.outsource.mobilize.attendance',
+                                     'sbh_id',
+                                     string='Attendances')
+    datasheet_id = fields.Many2one('budget.outsource.datasheet', string='DataSheet')
 
     # MISC
     # ----------------------------------------------------------
@@ -258,9 +262,33 @@ class Sbh(models.Model):
         self.attach(filename, tmp_file)
         tmp_file.close()
 
+        self.state = 'in progress'
+
     @api.one
     def analyse_sbh(self):
         pass
+
+    # BUTTONS
+    # ----------------------------------------------------------
+    @api.one
+    def set_approved(self):
+        self.attendance_ids.write({'is_approved': True})
+        self.state = 'approved'
+
+    @api.multi
+    def download_sbh(self):
+        attachment_id = self.env['ir.attachment'].search([
+            ('res_model', '=', self._name),
+            ('res_id', '=', self.id)
+        ], limit=1, order='id desc')
+
+        # TODO CHECK HW TO REMOVE ?debug on the url
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/web/content/%s?download=true' % attachment_id.id,
+            'target': 'self',
+            'res_id': self.id,
+        }
 
     # ACTION METHODS
     # ----------------------------------------------------------
