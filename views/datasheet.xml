@@ -98,7 +98,7 @@
             <field name="model">budget.outsource.datasheet</field>
             <field name="arch" type="xml">
                 <tree default_order="id desc"
-                      decoration-success="state == 'in progress'"
+                      decoration-success="state in ['in progress', 'approved']"
                       decoration-warning="state == 'draft'"
                       decoration-muted="state in ['closed', 'cancelled']">
                     <field name="contractor_id"/>
@@ -113,6 +113,31 @@
             </field>
         </record>
 
+        <!--START SEARCH-->
+        <record model="ir.ui.view" id="search_datasheet">
+            <field name="name">Datasheet</field>
+            <field name="model">budget.outsource.datasheet</field>
+            <field name="arch" type="xml">
+                <search>
+                    <group expand="0" string="Group By" colspan="16">
+                        <filter string="Purchase Order" domain="[]" context="{'group_by':'po_id'}"/>
+                        <filter string="Contractor" domain="[]" context="{'group_by':'contractor_id'}"/>
+                        <filter string="Period" domain="[]" context="{'group_by':'period_start'}"/>
+                    </group>
+                    <separator/>
+                    <filter name="need_action"
+                            string="Need Action"
+                            domain="[('state', 'in', ['draft', 'in progress', 'approved'])]"/>
+                    <filter name="done"
+                            string="Done"
+                            domain="[('state', 'in', ['closed'])]"/>
+                    <field name="po_id"/>
+                    <field name="contractor_id"/>
+                </search>
+            </field>
+        </record>
+        <!--END SEARCH-->
+        
         <!--START ACTIONS-->
         <!--Contract Action-->
         <record model="ir.actions.act_window" id="action_datasheet">
@@ -121,6 +146,13 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_tree_datasheet"/>
+            <field name="search_view_id" ref="search_datasheet"/>
+            <field name="context">{
+                'form_view_ref': 'budget_outsource.view_form_datasheet',
+                'search_default_need_action': 1,
+                }
+            </field>
+
         </record>
         <!--END ACTIONS-->
     </data>

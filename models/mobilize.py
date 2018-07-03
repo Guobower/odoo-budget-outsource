@@ -43,6 +43,7 @@ class Mobilize(models.Model):
     po_id = fields.Many2one(string='Purchase Order Number', store=True, related='position_id.po_id')
 
     resource_name = fields.Char(string='Name', store=True, related='resource_id.name')
+    contractor_id = fields.Many2one(string='Name', store=True, related='resource_id.contractor_id')
     type = fields.Char(string='Type', store=True, related='resource_id.type')
     type_class = fields.Char(string='Type Class', store=True, related='resource_id.type_class')
     agency_ref_num = fields.Char(string='Agency Reference', store=True, related='resource_id.agency_ref_num')

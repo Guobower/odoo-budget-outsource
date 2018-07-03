@@ -53,7 +53,8 @@
                                 <group>
                                     <group>
                                         <field name="has_tool_or_uniform" readonly="1"/>
-                                        <field name="emp_num" required="1" readonly="1"/>
+                                        <field name="emp_num" readonly="1"/>
+                                        <field name="contractor_id" readonly="1"/>
                                         <field name="agency_ref_num" readonly="1"/>
                                         <field name="date_of_join" readonly="1"/>
                                         <field name="date_of_last_working_day" readonly="1"/>
@@ -117,8 +118,8 @@
                     <field name="position_id"/>
                     <field name="po_id"/>
                     <field name="rate"/>
-                    <!--TODO ADD THIS FIELDS-->
-                    <!--<field name="additional_rate_%"/>-->
+                    <field name="rate_variance_percent%"/>
+                    <field name="contractor_id" string="Contractor"/>
                     <field name="agency_ref_num"/>
                     <field name="resource_name"/>
                     <field name="position_name"/>
@@ -144,8 +145,7 @@
                     <field name="position_id"/>
                     <field name="po_id"/>
                     <field name="rate"/>
-                    <!--TODO ADD THIS FIELDS-->
-                    <!--<field name="additional_rate_%"/>-->
+                    <field name="rate_variance_percent"/>
                     <field name="agency_ref_num"/>
                     <field name="resource_name"/>
                     <field name="position_name"/>
@@ -160,6 +160,36 @@
             </field>
         </record>
 
+        <!--START SEARCH-->
+        <record model="ir.ui.view" id="search_mobilize">
+            <field name="name">Datasheet</field>
+            <field name="model">budget.outsource.mobilize</field>
+            <field name="arch" type="xml">
+                <search>
+                    <group expand="0" string="Group By" colspan="16">
+                        <filter string="Purchase Order" domain="[]" context="{'group_by':'po_id'}"/>
+                        <filter string="Contractor" domain="[]" context="{'group_by':'contractor_id'}"/>
+                        <filter string="Division" domain="[]" context="{'group_by':'division_id'}"/>
+                        <filter string="Position" domain="[]" context="{'group_by':'position_name'}"/>
+                        <filter string="Level" domain="[]" context="{'group_by':'level'}"/>
+                    </group>
+                    <separator/>
+                    <filter name="mobilized"
+                            string="Mobilized"
+                            domain="[('state', 'in', ['mobilized'])]"/>
+                    <filter name="not_mobilized"
+                            string="Not Mobilized"
+                            domain="[('state', 'in', ['not mobilized'])]"/>
+                    <field name="po_id"/>
+                    <field name="contractor_id"/>
+                    <field name="division_id"/>
+                    <field name="position_name"/>
+                    <field name="level"/>
+                </search>
+            </field>
+        </record>
+        <!--END SEARCH-->
+        
         <!--START ACTIONS-->
         <!--Contract Action-->
         <record model="ir.actions.act_window" id="action_mobilize">

@@ -282,7 +282,6 @@ class Sbh(models.Model):
             ('res_id', '=', self.id)
         ], limit=1, order='id desc')
 
-        # TODO CHECK HW TO REMOVE ?debug on the url
         return {
             'type': 'ir.actions.act_url',
             'url': '/web/content/%s?download=true' % attachment_id.id,
