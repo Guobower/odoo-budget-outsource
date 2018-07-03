@@ -118,7 +118,7 @@
                     <field name="position_id"/>
                     <field name="po_id"/>
                     <field name="rate"/>
-                    <field name="rate_variance_percent%"/>
+                    <field name="rate_variance_percent"/>
                     <field name="contractor_id" string="Contractor"/>
                     <field name="agency_ref_num"/>
                     <field name="resource_name"/>
