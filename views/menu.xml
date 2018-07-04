@@ -54,11 +54,11 @@
                 sequence="3"/>
 
         <!--<menuitem-->
-                <!--id="menu_change_left_child"-->
-                <!--name="Change Wizard (TODO)"-->
-                <!--parent="menu_mobilization_left"-->
-                <!--action="action_mobilize"-->
-                <!--sequence="4"/>-->
+        <!--id="menu_change_left_child"-->
+        <!--name="Change Wizard (TODO)"-->
+        <!--parent="menu_mobilization_left"-->
+        <!--action="action_mobilize"-->
+        <!--sequence="4"/>-->
 
         <menuitem
                 id="menu_invoice_outsource_left_child"
@@ -119,6 +119,5 @@
                 name="SPOC"
                 parent="menu_dependencies_left"
                 action="budget_enduser.action_spoc"/>
-
     </data>
 </odoo>
